@@ -32,11 +32,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x
-      - name: 'Build index'
-        run: deno run --allow-read=. --allow-write=./dist ./build/main.ts
+      - uses: ./.github/actions/build-swu-index
       - name: 'Deploy'
         if: ${{ github.ref == 'refs/heads/master' }}
         uses: actions/upload-pages-artifact@v3
