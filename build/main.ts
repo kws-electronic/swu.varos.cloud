@@ -22,7 +22,7 @@ const WALK_OPTIONS: WalkOptions = {
   includeFiles: true,
   includeDirs: false,
   exts: ["swu"],
-  skip: [/^dist/],
+  skip: [/^dist/, /^.github/],
 };
 
 const allSwuFiles: {
