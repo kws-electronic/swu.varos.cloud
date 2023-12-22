@@ -7,3 +7,4 @@ runs:
         deno-version: v1.x
     - name: 'Build index'
       run: deno run --allow-read=. --allow-write=./dist ${{ github.action_path }}/main.ts
+      shell: bash
