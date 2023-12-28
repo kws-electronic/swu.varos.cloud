@@ -51,6 +51,8 @@ allSwuFiles.sort((a, b) => {
 });
 
 const latestStable = allSwuFiles.find((x) => x.version.prerelease.length === 0);
+const latestBeta = allSwuFiles.find((x) => x.version.prerelease[0] === "beta");
+const latestRC = allSwuFiles.find((x) => x.version.prerelease[0] === "rc");
 
 if (latestStable === undefined) {
   throw new Error("Could not find stable version");
@@ -62,6 +64,9 @@ await ensureDir(join(OUT_DIR, "static"));
 await ensureDir(join(OUT_DIR, "v1"));
 
 const stableUniqueName = crypto.randomUUID() + `.swu`;
+const betaUniqueName = crypto.randomUUID() + `.swu`;
+const rcUniqueName = crypto.randomUUID() + `.swu`;
+
 {
   getLogger().info(
     `Latest Stable SWU: ${
@@ -75,13 +80,61 @@ const stableUniqueName = crypto.randomUUID() + `.swu`;
   );
 }
 
-const index = {
+if (latestBeta) {
+  getLogger().info(
+    `Latest Beta SWU: ${
+      formatSemver(latestBeta.version)
+    } at ./${latestBeta.path}`,
+  );
+  getLogger().debug(`Copying ${latestBeta.path} to ${betaUniqueName}`);
+  await Deno.copyFile(
+    latestBeta.path,
+    join(OUT_DIR, "static", betaUniqueName),
+  );
+}
+
+if (latestRC) {
+  getLogger().info(
+    `Latest Release Candidate SWU: ${
+      formatSemver(latestRC.version)
+    } at ./${latestRC.path}`,
+  );
+  getLogger().debug(
+    `Copying ${latestRC.path} to ${rcUniqueName}`,
+  );
+  await Deno.copyFile(
+    latestRC.path,
+    join(OUT_DIR, "static", rcUniqueName),
+  );
+}
+
+const index: {
+  indexFileVersion: 1;
+  stable: { version: string; url: string };
+  beta?: { version: string; url: string };
+  rc?: { version: string; url: string };
+} = {
   indexFileVersion: 1,
   stable: {
     version: formatSemver(latestStable.version),
     url: new URL(`/static/${stableUniqueName}`, `https://${DOMAIN}`).toString(),
   },
-} satisfies { indexFileVersion: 1; stable: { version: string; url: string } };
+};
+
+if (latestBeta) {
+  index.beta = {
+    version: formatSemver(latestBeta.version),
+    url: new URL(`/static/${betaUniqueName}`, `https://${DOMAIN}`).toString(),
+  };
+}
+
+if (latestRC) {
+  index.rc = {
+    version: formatSemver(latestRC.version),
+    url: new URL(`/static/${rcUniqueName}`, `https://${DOMAIN}`)
+      .toString(),
+  };
+}
 
 getLogger().info("v1/index.json:");
 getLogger().info(index);
